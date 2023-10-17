@@ -1,0 +1,88 @@
+/* =========================================================
+--readBlock will read page from disk to memory.
+============================================================*/
+extern RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
+{
+    fp = fopen(fHandle->fileName, "r");
+
+    if (fHandle == NULL)//checking whether file handler initialized of not.
+    {
+        RC_message="file handler not initiated.";
+        return RC_FILE_HANDLE_NOT_INIT;
+    }
+    if(fp == NULL)//checking if the file is exist or not
+    {
+        RC_message="File Not Found";
+        return RC_FILE_NOT_FOUND;
+    }
+    if(pageNum > fHandle->totalNumPages-1 || pageNum < 0)
+    {
+        RC_message="Requested page is not exist.";
+        return RC_READ_NON_EXISTING_PAGE;
+    }
+
+    fseek(fp, pageNum*PAGE_SIZE*sizeof(char), SEEK_SET);
+    fread(memPage, 1, PAGE_SIZE, fp);
+
+    fHandle->curPagePos = pageNum;
+
+    return RC_OK;
+}
+/* =========================================================
+--getBlockPos will return the current page position.
+============================================================*/
+int getBlockPos (SM_FileHandle *fHandle)
+{
+    if(fHandle != NULL)//check whether the file handle is initiated or not.
+	{
+		if((fopen(fHandle->fileName,"r")) != NULL)// check whether file exist of not.
+		{
+			return fHandle->curPagePos;
+		}
+		else
+		{
+			RC_message="File Not Found";
+			return RC_FILE_NOT_FOUND;
+		}
+	}
+	else
+	{
+		RC_message="file handler not initiated.";
+		return RC_FILE_HANDLE_NOT_INIT;
+	}
+}
+/* =========================================================
+--readFirstBlock will read first block of file.
+============================================================*/
+extern RC readFirstBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
+{
+    return  readBlock(0,fHandle,memPage);
+}
+/* =========================================================
+--readPreviousBlock will read previous block of file.
+============================================================*/
+extern RC readPreviousBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
+{
+    return readBlock(fHandle->curPagePos-1,fHandle,memPage);
+}
+/* ======================================================================
+--readCurrentBlock will read current block where current handler of file.
+========================================================================*/
+extern RC readCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
+{
+    return  readBlock(fHandle->curPagePos,fHandle,memPage);
+}
+/* ======================================================================
+--readCurrentBlock will read current block where current handler of file.
+========================================================================*/
+extern RC readNextBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
+{
+    return  readBlock(fHandle->curPagePos+1,fHandle,memPage);
+}
+/*======================================================================
+--readLastBlock will read last block of file.
+========================================================================*/
+extern RC readLastBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
+{
+    return  readBlock(fHandle->totalNumPages-1,fHandle,memPage);
+}
